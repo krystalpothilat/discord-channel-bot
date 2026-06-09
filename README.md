@@ -1,1 +1,1 @@
-# discord-text-bot
+# Discord Channel Bot
