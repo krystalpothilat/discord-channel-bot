@@ -3,7 +3,6 @@ const { Client, GatewayIntentBits } = require("discord.js");
 
 const WATCH_CHANNEL_NAME  = process.env.WATCH_CHANNEL_NAME  || "General";
 const ALERT_CHANNEL_NAME  = process.env.ALERT_CHANNEL_NAME  || "notifications";
-const TIMEZONE            = process.env.TIMEZONE            || "America/Los_Angeles";
 
 const USER_A_ID = process.env.USER_A_ID;
 const USER_B_ID = process.env.USER_B_ID; 
@@ -25,15 +24,6 @@ function getMentionForOther(userId) {
 
 function isWatchedChannel(channel) {
   return channel?.name.toLowerCase() === WATCH_CHANNEL_NAME.toLowerCase();
-}
-
-function formatTime() {
-  return new Date().toLocaleTimeString("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-    timeZone: TIMEZONE,
-  });
 }
 
 async function getAlertChannel(guild) {
@@ -65,7 +55,6 @@ client.on("voiceStateUpdate", async (oldState, newState) => {
     return;
   }
 
-  const time = formatTime();
 
   if (joinedWatched && !leftWatched) {
     // Someone joined
@@ -73,17 +62,17 @@ client.on("voiceStateUpdate", async (oldState, newState) => {
     const peopleStr = count === 1 ? "1 person" : `${count} people`;
     const mention = getMentionForOther(member?.id);
     const mentionStr = mention ? ` — ${mention}` : "";
-    const msg = `🟢 **${displayName}** joined **#${WATCH_CHANNEL_NAME}** at ${time} — ${peopleStr} now in the channel${mentionStr}`;
+    const msg = `🟢 **${displayName}** joined **#${WATCH_CHANNEL_NAME}** — ${peopleStr} now in the channel${mentionStr}`;
     await alertChannel.send(msg);
-    console.log(`[JOIN]  ${displayName} → #${WATCH_CHANNEL_NAME} (${peopleStr}) at ${time}`);
+    console.log(`[JOIN]  ${displayName} → #${WATCH_CHANNEL_NAME} (${peopleStr})`);
 
   } else if (leftWatched && !joinedWatched) {
     // Someone left
     const count = leftChannel.members.size;
     const peopleStr = count === 0 ? "channel now empty" : count === 1 ? "1 person remaining" : `${count} people remaining`;
-    const msg = `🔴 **${displayName}** left **#${WATCH_CHANNEL_NAME}** at ${time} — ${peopleStr}`;
+    const msg = `🔴 **${displayName}** left **#${WATCH_CHANNEL_NAME}** — ${peopleStr}`;
     await alertChannel.send(msg);
-    console.log(`[LEAVE] ${displayName} ← #${WATCH_CHANNEL_NAME} (${peopleStr}) at ${time}`);
+    console.log(`[LEAVE] ${displayName} ← #${WATCH_CHANNEL_NAME} (${peopleStr})`);
   }
 });
 
