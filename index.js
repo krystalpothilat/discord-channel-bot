@@ -5,6 +5,10 @@ const WATCH_CHANNEL_NAME  = process.env.WATCH_CHANNEL_NAME  || "General";
 const ALERT_CHANNEL_NAME  = process.env.ALERT_CHANNEL_NAME  || "notifications";
 const TIMEZONE            = process.env.TIMEZONE            || "America/Los_Angeles";
 
+const USER_A_ID = process.env.USER_A_ID;
+const USER_B_ID = process.env.USER_B_ID; 
+
+
 //  Discord client 
 const client = new Client({
   intents: [
@@ -12,6 +16,12 @@ const client = new Client({
     GatewayIntentBits.GuildVoiceStates,
   ],
 });
+
+function getMentionForOther(userId) {
+  if (userId === USER_A_ID) return USER_B_ID ? `<@${USER_B_ID}>` : null;
+  if (userId === USER_B_ID) return USER_A_ID ? `<@${USER_A_ID}>` : null;
+  return null; // someone else joined — no mention
+}
 
 function isWatchedChannel(channel) {
   return channel?.name.toLowerCase() === WATCH_CHANNEL_NAME.toLowerCase();
@@ -61,7 +71,9 @@ client.on("voiceStateUpdate", async (oldState, newState) => {
     // Someone joined
     const count = joinedChannel.members.size;
     const peopleStr = count === 1 ? "1 person" : `${count} people`;
-    const msg = `🟢 **${displayName}** joined **#${WATCH_CHANNEL_NAME}** at ${time} — ${peopleStr} now in the channel`;
+    const mention = getMentionForOther(member?.id);
+    const mentionStr = mention ? ` — ${mention}` : "";
+    const msg = `🟢 **${displayName}** joined **#${WATCH_CHANNEL_NAME}** at ${time} — ${peopleStr} now in the channel${mentionStr}`;
     await alertChannel.send(msg);
     console.log(`[JOIN]  ${displayName} → #${WATCH_CHANNEL_NAME} (${peopleStr}) at ${time}`);
 
@@ -79,6 +91,8 @@ client.once("ready", () => {
   console.log(`\n✅ Logged in as ${client.user.tag}`);
   console.log(`👂 Watching voice channel : "${WATCH_CHANNEL_NAME}"`);
   console.log(`📢 Sending alerts to      : "#${ALERT_CHANNEL_NAME}"\n`);
+  console.log(`👤 User A ID: ${USER_A_ID || "⚠️  NOT SET"}`);
+  console.log(`👤 User B ID: ${USER_B_ID || "⚠️  NOT SET"}\n`);
 });
 
 client.on("error", (err) => console.error("Discord error:", err.message));
